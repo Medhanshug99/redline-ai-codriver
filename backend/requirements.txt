@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+torch
+transformers
+librosa
+datasets
+python-dotenv
+soundfile
