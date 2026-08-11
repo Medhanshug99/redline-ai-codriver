@@ -1,40 +1,51 @@
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { Minus, AlertTriangle, BatteryMedium, AlertCircle } from "lucide-react";
 
-type MoodType = 'Calm' | 'Stressed' | 'Tired' | 'Frustrated';
+type MoodType = "Calm" | "Stressed" | "Tired" | "Frustrated";
 
 interface Props {
   mood: MoodType | null;
   confidence: number;
 }
 
-const moodConfig: Record<MoodType, { color: string; bg: string; border: string; icon: string; description: string }> = {
+const moodConfig: Record<
+  MoodType,
+  {
+    color: string;
+    bg: string;
+    border: string;
+    icon: string;
+    description: string;
+  }
+> = {
   Calm: {
-    color: 'var(--stress-calm)',
-    bg: 'rgba(43,232,255,0.08)',
-    border: 'rgba(43,232,255,0.3)',
-    icon: '◉',
-    description: 'Vocal tone is steady. Driver is composed.',
+    color: "var(--stress-calm)",
+    bg: "rgba(43,232,255,0.08)",
+    border: "rgba(43,232,255,0.3)",
+    icon: Minus,
+    description: "Vocal tone is steady. Driver is composed.",
   },
   Stressed: {
-    color: 'var(--stress-stressed)',
-    bg: 'rgba(255,43,60,0.08)',
-    border: 'rgba(255,43,60,0.3)',
-    icon: '◈',
-    description: 'Elevated vocal stress detected. Monitor closely.',
+    color: "var(--stress-stressed)",
+    bg: "rgba(255,43,60,0.08)",
+    border: "rgba(255,43,60,0.3)",
+    icon: AlertTriangle,
+    description: "Elevated vocal stress detected. Monitor closely.",
   },
   Tired: {
-    color: 'var(--stress-tired)',
-    bg: 'rgba(255,176,32,0.08)',
-    border: 'rgba(255,176,32,0.3)',
-    icon: '◇',
-    description: 'Vocal pattern suggests fatigue. Consider pacing.',
+    color: "var(--stress-tired)",
+    bg: "rgba(255,176,32,0.08)",
+    border: "rgba(255,176,32,0.3)",
+    icon: BatteryMedium,
+    description: "Vocal pattern suggests fatigue. Consider pacing.",
   },
   Frustrated: {
-    color: 'var(--accent-red)',
-    bg: 'rgba(255,43,60,0.12)',
-    border: 'rgba(255,43,60,0.5)',
-    icon: '◆',
-    description: 'Mixed vocal stress signals. Composite frustration indicator active.',
+    color: "var(--accent-red)",
+    bg: "rgba(255,43,60,0.12)",
+    border: "rgba(255,43,60,0.5)",
+    icon: AlertCircle,
+    description:
+      "Mixed vocal stress signals. Composite frustration indicator active.",
   },
 };
 
@@ -53,21 +64,24 @@ export function MoodBadge({ mood, confidence }: Props) {
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className="p-4 rounded-xl border"
       style={{ backgroundColor: cfg.bg, borderColor: cfg.border }}
     >
       <div className="flex items-center gap-3 mb-2">
         <motion.span
-          className="text-3xl font-mono"
+          className="flex items-center justify-center"
           style={{ color: cfg.color }}
-          animate={mood === 'Stressed' ? { scale: [1, 1.2, 1] } : {}}
+          animate={mood === "Stressed" ? { scale: [1, 1.2, 1] } : {}}
           transition={{ repeat: Infinity, duration: 1.2 }}
         >
-          {cfg.icon}
+          <cfg.icon size={28} />
         </motion.span>
         <div>
-          <p className="text-2xl font-bold tracking-tight" style={{ color: cfg.color }}>
+          <p
+            className="text-2xl font-bold tracking-tight"
+            style={{ color: cfg.color }}
+          >
             {mood}
           </p>
           <p className="text-xs font-mono text-text-muted">
@@ -75,7 +89,9 @@ export function MoodBadge({ mood, confidence }: Props) {
           </p>
         </div>
       </div>
-      <p className="text-xs text-text-muted leading-relaxed">{cfg.description}</p>
+      <p className="text-xs text-text-muted leading-relaxed">
+        {cfg.description}
+      </p>
     </motion.div>
   );
 }

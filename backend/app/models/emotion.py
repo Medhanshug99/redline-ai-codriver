@@ -21,8 +21,6 @@ def map_emotion(raw_scores):
     """
     scores_dict = {item['label'][:3].lower(): item['score'] for item in raw_scores}
     
-    neu = scores_dict.get('neu', 0.0)
-    hap = scores_dict.get('hap', 0.0)
     ang = scores_dict.get('ang', 0.0)
     sad = scores_dict.get('sad', 0.0)
 

@@ -1,10 +1,10 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from './ui/Badge';
+import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "./ui/Badge";
 
 interface LogEntry {
   id: string;
   transcript: string;
-  mood: 'Calm' | 'Stressed' | 'Tired' | 'Frustrated';
+  mood: "Calm" | "Stressed" | "Tired" | "Frustrated";
   confidence: number;
   timestamp: number;
 }
@@ -25,7 +25,10 @@ export function RadioLog({ entries }: Props) {
   return (
     <div
       className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1"
-      style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}
+      style={{
+        scrollbarWidth: "thin",
+        scrollbarColor: "rgba(255,255,255,0.1) transparent",
+      }}
     >
       <AnimatePresence>
         {[...entries].reverse().map((entry) => (

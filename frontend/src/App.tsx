@@ -1,5 +1,5 @@
-import { TrackBackdrop } from './scenes/TrackBackdrop';
-import { Dashboard } from './pages/Dashboard';
+import { TrackBackdrop } from "./scenes/TrackBackdrop";
+import { Dashboard } from "./pages/Dashboard";
 
 function App() {
   return (

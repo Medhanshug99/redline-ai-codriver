@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
-import { Play, Pause, Upload } from 'lucide-react';
-import { GlowButton } from './ui/GlowButton';
+import { useRef, useEffect, useState } from "react";
+import { Upload, Play, Pause, Loader2 } from "lucide-react";
+import { GlowButton } from "./ui/GlowButton";
 
 interface Props {
   onFileSelect: (file: File) => void;
@@ -48,11 +48,13 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
     if (!audioCtxRef.current) {
       audioCtxRef.current = new AudioContext();
     }
-    if (audioCtxRef.current.state === 'suspended') {
+    if (audioCtxRef.current.state === "suspended") {
       audioCtxRef.current.resume();
     }
     if (!sourceRef.current && audioRef.current) {
-      sourceRef.current = audioCtxRef.current.createMediaElementSource(audioRef.current);
+      sourceRef.current = audioCtxRef.current.createMediaElementSource(
+        audioRef.current,
+      );
       analyserRef.current = audioCtxRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
       sourceRef.current.connect(analyserRef.current);
@@ -64,7 +66,7 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
   const drawWaveform = () => {
     if (!canvasRef.current || !analyserRef.current) return;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const bufferLength = analyserRef.current.frequencyBinCount;
@@ -77,13 +79,13 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
       if (!analyserRef.current) return;
       analyserRef.current.getByteTimeDomainData(dataArray);
 
-      ctx.fillStyle = 'rgba(5, 7, 12, 0.3)';
+      ctx.fillStyle = "rgba(5, 7, 12, 0.3)";
       ctx.fillRect(0, 0, width, height);
 
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#2be8ff';
+      ctx.strokeStyle = "#2be8ff";
       ctx.shadowBlur = 8;
-      ctx.shadowColor = '#2be8ff';
+      ctx.shadowColor = "#2be8ff";
       ctx.beginPath();
 
       const sliceWidth = width / bufferLength;
@@ -118,7 +120,7 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
           className="text-sm px-4 py-2"
         >
           <Upload size={15} className="mr-2" />
-          {isAnalyzing ? 'Analyzing...' : 'Upload Radio Clip'}
+          {isAnalyzing ? "Analyzing..." : "Upload Radio Clip"}
         </GlowButton>
 
         {audioUrl && (
@@ -126,20 +128,30 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
             onClick={togglePlay}
             className="w-9 h-9 flex items-center justify-center rounded-full bg-void border border-white/10 hover:border-accent-cyan text-accent-cyan transition-colors"
           >
-            {isPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
+            {isPlaying ? (
+              <Pause size={16} />
+            ) : (
+              <Play size={16} className="ml-0.5" />
+            )}
           </button>
         )}
 
         {isAnalyzing && (
-          <span className="text-xs font-mono text-accent-cyan animate-pulse">
-            ⟳ Transcribing + classifying emotion…
+          <span className="text-xs font-mono text-accent-cyan animate-pulse flex items-center gap-1">
+            <Loader2 size={12} className="animate-spin" /> Transcribing +
+            classifying emotion…
           </span>
         )}
       </div>
 
       {audioUrl && (
         <div className="w-full h-20 bg-void/50 rounded-xl border border-white/5 overflow-hidden relative">
-          <canvas ref={canvasRef} width={800} height={80} className="w-full h-full" />
+          <canvas
+            ref={canvasRef}
+            width={800}
+            height={80}
+            className="w-full h-full"
+          />
           <audio
             ref={audioRef}
             src={audioUrl}

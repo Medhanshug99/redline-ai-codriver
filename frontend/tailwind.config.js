@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -16,8 +13,8 @@ export default {
         "stress-calm": "var(--stress-calm)",
         "stress-tired": "var(--stress-tired)",
         "stress-stressed": "var(--stress-stressed)",
-      }
+      },
     },
   },
   plugins: [],
-}
+};

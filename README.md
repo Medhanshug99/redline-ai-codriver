@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vitejs.dev)
-[![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Hub-FFD21E)](https://huggingface.co)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Hub-FFD21E)](https://huggingface.co)
 [![Dataset](https://img.shields.io/badge/Dataset-MikCil%2Ff1--team--radio-blue)](https://huggingface.co/datasets/MikCil/f1-team-radio)
 [![License: CC BY 4.0](https://img.shields.io/badge/Data%20License-CC%20BY%204.0-green)](https://creativecommons.org/licenses/by/4.0/)
 
@@ -24,16 +24,16 @@ Pit wall engineers currently assess driver state through intuition and fragmente
 
 | Feature | Status | Description |
 |---|---|---|
-| 🎤 Audio Upload | ✅ Core | Upload any driver radio clip (.mp3 / .wav / .ogg) |
-| 🌊 Live Waveform | ✅ Core | Animated Web Audio API visualizer synced to playback |
-| 📝 Transcription | ✅ Core | `openai/whisper-base` on HF Hub — fast, demo-safe |
-| 🧠 Mood Classification | ✅ Core | `superb/wav2vec2-base-superb-er` — Calm / Stressed / Tired |
-| ⚡ Keyword Flagging | ✅ Core | Real-time highlight of safety words: brake, tyre, smoke, pain, vision |
-| 📊 Lap Time Chart | ✅ Core | Recharts telemetry chart with sector breakdown |
-| 🔥 Stress Heatmap | ✅ Differentiator | Color-coded timeline strip of mood across clips |
-| 📈 Correlation Score | ✅ Differentiator | Pearson r between stress and lap time |
-| 📻 Radio Log | ✅ Differentiator | Scrollable searchable history with mood badges |
-| 🏎️ Driver Psych Panel | ✅ Differentiator | Real-time session stats, mood panel, disclaimer |
+| Audio Upload | Done (Core) | Upload any driver radio clip (.mp3 / .wav / .ogg) |
+| Live Waveform | Done (Core) | Animated Web Audio API visualizer synced to playback |
+| Transcription | Done (Core) | `openai/whisper-base` on HF Hub — fast, demo-safe |
+| Mood Classification | Done (Core) | `superb/wav2vec2-base-superb-er` — Calm / Stressed / Tired |
+| Keyword Flagging | Done (Core) | Real-time highlight of safety words: brake, tyre, smoke, pain, vision |
+| Lap Time Chart | Done (Core) | Recharts telemetry chart with sector breakdown |
+| Stress Heatmap | Done (Diff) | Color-coded timeline strip of mood across clips |
+| Correlation Score | Done (Diff) | Pearson r between stress and lap time |
+| Radio Log | Done (Diff) | Scrollable searchable history with mood badges |
+| Driver Psych Panel | Done (Diff) | Real-time session stats, mood panel, disclaimer |
 
 ---
 
@@ -98,7 +98,7 @@ The SER model (`wav2vec2-base-superb-er`) outputs 4 raw classes. They are mapped
 | `sad` (Sad) | Tired | Low-energy, depressed vocal tone |
 | Composite | Frustrated | Derived from high `ang`+`sad` confidence with neither dominant — **not a direct model output**; documented as a derived heuristic |
 
-> ⚠️ **Known Limitations:**
+> **Known Limitations:**
 > 
 > 1. **"Frustrated" label is a derived heuristic**, not a raw model output. Confidence thresholds on `ang` and `sad` are combined — documented here and in the disclaimer shown in the UI.
 > 
@@ -163,7 +163,11 @@ Lap-time data in `data/sample_laps.json` is **synthetic mock data** generated fo
 
 ---
 
-## Team & Submission
+## Team, Process & Models
 
 **Track:** PS1 — The Silent Co-Driver | **Hackathon:** Grand Prix Hackathon
-**HF Hub Assets:** `openai/whisper-base` · `superb/wav2vec2-base-superb-er` · `MikCil/f1-team-radio`
+
+**Hugging Face Integration Strategy:**
+- **`openai/whisper-base`**: Chosen for Speech-to-Text because it strikes the right balance between inference speed and accuracy on CPU for a live demo.
+- **`superb/wav2vec2-base-superb-er`**: Chosen for Speech Emotion Recognition because it directly outputs discrete emotional classes (neu, hap, ang, sad) which we could map heuristically to high-stress racing states.
+- **`MikCil/f1-team-radio`**: The critical enabler for this project. Provides thousands of real-world noisy radio transmissions to test the pipeline against actual broadcast conditions rather than synthesized clean audio.

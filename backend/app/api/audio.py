@@ -3,7 +3,6 @@ import uuid
 import json
 import time
 from fastapi import APIRouter, File, UploadFile
-from fastapi.responses import JSONResponse
 from app.models.transcriber import transcribe_audio
 from app.models.emotion import analyze_emotion
 
@@ -58,3 +57,36 @@ async def upload_audio(file: UploadFile = File(...)):
         # Clean up
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+@router.post("/demo")
+async def demo_audio():
+    global _upload_count
+    
+    demo_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'sample_audio', 'clip_05.wav')
+    
+    if not os.path.exists(demo_file_path):
+        return {"error": "Demo file not found"}
+        
+    try:
+        # Transcribe
+        transcript_result = transcribe_audio(demo_file_path)
+        
+        # Analyze Emotion
+        emotion_result = analyze_emotion(demo_file_path)
+
+        # Cycle through lap entries so successive uploads show varied telemetry
+        lap_idx = _upload_count % len(mock_laps) if mock_laps else 0
+        lap_data = mock_laps[lap_idx] if mock_laps else {"lap_time": 85.5, "sector1": 25.1}
+        _upload_count += 1
+
+        response = {
+            "transcript": transcript_result.get("text", ""),
+            "mood": emotion_result.get("label", "Calm"),
+            "confidence": emotion_result.get("score", 0.0),
+            "timestamp": time.time(),
+            "lap_data": lap_data
+        }
+        
+        return response
+    except Exception as e:
+        return {"error": str(e)}

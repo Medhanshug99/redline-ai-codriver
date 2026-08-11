@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
-type MoodType = 'Calm' | 'Stressed' | 'Tired' | 'Frustrated';
+type MoodType = "Calm" | "Stressed" | "Tired" | "Frustrated";
 
 interface HeatmapEntry {
   mood: MoodType;
@@ -13,10 +13,10 @@ interface Props {
 }
 
 const moodColor: Record<MoodType, string> = {
-  Calm: 'var(--stress-calm)',
-  Stressed: 'var(--stress-stressed)',
-  Tired: 'var(--stress-tired)',
-  Frustrated: 'var(--accent-red)',
+  Calm: "var(--stress-calm)",
+  Stressed: "var(--stress-stressed)",
+  Tired: "var(--stress-tired)",
+  Frustrated: "var(--accent-red)",
 };
 
 export function StressHeatmap({ entries }: Props) {
@@ -38,7 +38,10 @@ export function StressHeatmap({ entries }: Props) {
             animate={{ scaleY: 1 }}
             transition={{ delay: i * 0.05 }}
             className="flex-1 rounded-sm group relative cursor-pointer"
-            style={{ backgroundColor: moodColor[entry.mood], opacity: 0.4 + entry.confidence * 0.6 }}
+            style={{
+              backgroundColor: moodColor[entry.mood],
+              opacity: 0.4 + entry.confidence * 0.6,
+            }}
           >
             <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-20">
               <div className="bg-void text-text-primary text-xs font-mono px-2 py-1 rounded border border-white/10 whitespace-nowrap">

@@ -2,7 +2,11 @@ interface GlowButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
   children: React.ReactNode;
 }
 
-export function GlowButton({ children, className = '', ...props }: GlowButtonProps) {
+export function GlowButton({
+  children,
+  className = "",
+  ...props
+}: GlowButtonProps) {
   return (
     <button
       className={`relative inline-flex items-center justify-center px-6 py-3 font-semibold text-white transition-all duration-300 bg-void rounded-xl border border-[rgba(255,255,255,0.1)] hover:border-accent-red hover:shadow-[0_0_15px_var(--border-glow)] overflow-hidden group ${className}`}

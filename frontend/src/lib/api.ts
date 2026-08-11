@@ -1,8 +1,8 @@
-export const API_BASE = 'http://localhost:8000/api/audio';
+export const API_BASE = "http://localhost:8000/api/audio";
 
 export interface AnalysisResponse {
   transcript: string;
-  mood: 'Calm' | 'Stressed' | 'Tired' | 'Frustrated';
+  mood: "Calm" | "Stressed" | "Tired" | "Frustrated";
   confidence: number;
   timestamp: number;
   lap_data: {
@@ -15,16 +15,33 @@ export interface AnalysisResponse {
 
 export async function uploadAudio(file: File): Promise<AnalysisResponse> {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   const response = await fetch(`${API_BASE}/upload`, {
-    method: 'POST',
+    method: "POST",
     body: formData,
   });
 
   if (!response.ok) {
-    throw new Error('Analysis failed');
+    throw new Error("Upload failed");
   }
 
   return response.json();
+}
+
+export async function runDemo(): Promise<AnalysisResponse> {
+  const response = await fetch(`${API_BASE}/demo`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("Demo request failed");
+  }
+
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error);
+  }
+  
+  return data;
 }
