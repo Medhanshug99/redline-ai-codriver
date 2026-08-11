@@ -48,8 +48,6 @@ REDLINE/
 │   │   ├── models/
 │   │   │   ├── transcriber.py    # openai/whisper-base wrapper
 │   │   │   └── emotion.py        # superb/wav2vec2-base-superb-er wrapper
-│   │   └── analytics/
-│   │       └── correlation.py    # Pearson correlation utilities
 │   ├── data/sample_laps.json     # Mock paired lap-time dataset
 │   ├── requirements.txt
 │   └── .env.example
@@ -61,7 +59,7 @@ REDLINE/
         │   ├── MoodBadge.tsx          # Animated mood state indicator
         │   ├── LapTimeChart.tsx       # Recharts lap telemetry
         │   ├── StressHeatmap.tsx      # Color-coded timeline strip
-        │   ├── CorrelationCard.tsx    # Pearson r insight card
+        │   ├── CorrelationCard.tsx    # Pearson r insight card (computed client-side)
         │   ├── RadioLog.tsx           # Scrollable history
         │   └── ui/                   # Glass-card, Badge, GlowButton
         ├── scenes/TrackBackdrop.tsx   # React Three Fiber particle field
@@ -100,9 +98,20 @@ The SER model (`wav2vec2-base-superb-er`) outputs 4 raw classes. They are mapped
 | `sad` (Sad) | Tired | Low-energy, depressed vocal tone |
 | Composite | Frustrated | Derived from high `ang`+`sad` confidence with neither dominant — **not a direct model output**; documented as a derived heuristic |
 
-> ⚠️ **Known Limitation:** The "Frustrated" label is a composite heuristic derived from confidence thresholds on `ang` and `sad` — it is **not** a raw model output class. Outputs reflect detected vocal tone patterns and are not diagnostic claims about any real driver's mental state.
+> ⚠️ **Known Limitations:**
+> 
+> 1. **"Frustrated" label is a derived heuristic**, not a raw model output. Confidence thresholds on `ang` and `sad` are combined — documented here and in the disclaimer shown in the UI.
+> 
+> 2. **SER Happy-bias on broadcast audio.** `wav2vec2-base-superb-er` was trained on IEMOCAP (acted speech in a recording studio). In testing against 10 real F1 team radio clips, 9 of 10 returned `hap`-dominant scores regardless of content — only one clip (a driver mid-strategy question) produced a non-Calm classification (`sad` → Tired). This is a known distribution shift between acted speech datasets and live radio. A model fine-tuned on motorsport broadcast audio would reduce this bias. Results shown in the demo are real model output; the limitation is the model's domain, not the pipeline.
+> 
+> 3. **Whisper transcription accuracy degrades on heavy radio static.** In testing, 2 of 5 clips produced phonetically plausible but semantically incorrect transcripts due to noise in the audio channel. Clips recorded closer to the microphone (longer, cleaner utterances like strategy discussions) transcribed accurately. Clip accuracy is noted in demo materials; `whisper-base` was chosen for demo speed — `whisper-small` or `whisper-medium` would improve results at higher latency cost.
+> 
+> 4. **Stress–lap correlation requires session-scale data.** With 5 clips, Pearson r is directional but not statistically meaningful (measured at −0.19 in testing). The correlation feature demonstrates the *architecture* of the insight pipeline — it strengthens meaningfully with a full session's worth of radio clips (typically 40–80 transmissions per race stint).
+> 
+> Outputs reflect detected vocal tone patterns and are not diagnostic claims about any real driver's mental state.
 
 ---
+
 
 ## Local Setup
 

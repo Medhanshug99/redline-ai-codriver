@@ -17,8 +17,12 @@ try:
 except FileNotFoundError:
     mock_laps = []
 
+# Track upload count so successive clips cycle through different lap entries
+_upload_count = 0
+
 @router.post("/upload")
 async def upload_audio(file: UploadFile = File(...)):
+    global _upload_count
     file_id = str(uuid.uuid4())
     
     # Ensure temporary directory exists
@@ -36,8 +40,10 @@ async def upload_audio(file: UploadFile = File(...)):
         # Analyze Emotion
         emotion_result = analyze_emotion(temp_file_path)
 
-        # Find corresponding lap or mock it
-        lap_data = mock_laps[0] if mock_laps else {"lap_time": 85.5, "sector1": 25.1}
+        # Cycle through lap entries so successive uploads show varied telemetry
+        lap_idx = _upload_count % len(mock_laps) if mock_laps else 0
+        lap_data = mock_laps[lap_idx] if mock_laps else {"lap_time": 85.5, "sector1": 25.1}
+        _upload_count += 1
 
         response = {
             "transcript": transcript_result.get("text", ""),

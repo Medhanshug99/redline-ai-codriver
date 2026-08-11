@@ -45,5 +45,4 @@ def map_emotion(raw_scores):
 def analyze_emotion(file_path: str):
     pipe = get_emotion_pipeline()
     result = pipe(file_path, top_k=4)
-    print(f"\n--- RAW SER MODEL OUTPUT ---\n{result}\n----------------------------\n", flush=True)
     return map_emotion(result)

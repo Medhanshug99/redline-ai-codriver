@@ -30,6 +30,7 @@ interface LogEntry {
   mood: Mood;
   confidence: number;
   timestamp: number;
+  lap_time: number;
 }
 
 interface HeatmapEntry {
@@ -56,6 +57,7 @@ export function Dashboard() {
         mood: result.mood as Mood,
         confidence: result.confidence,
         timestamp: result.timestamp,
+        lap_time: result.lap_data?.lap_time || 87,
       };
       setLog(prev => [...prev, entry]);
       setHeatmap(prev => [...prev, {
@@ -71,8 +73,8 @@ export function Dashboard() {
     }
   };
 
-  const stressScores = log.map(e => ['Stressed', 'Frustrated'].includes(e.mood) ? e.confidence : 1 - e.confidence);
-  const lapTimes = log.map(_e => 87); // mock; in Phase 4 we'd pair from sample_laps.json
+  const stressScores = log.map(e => ['Stressed', 'Frustrated', 'Tired'].includes(e.mood) ? e.confidence : 1 - e.confidence);
+  const lapTimes = log.map(e => e.lap_time);
 
   const flaggedKeywords = analysis?.transcript
     ? ['brake', 'tyre', 'smoke', 'pain', 'vision', 'fire', 'wall', 'damage'].filter(kw =>
@@ -121,7 +123,13 @@ export function Dashboard() {
       >
         {/* Left — Voice Telemetry (col-span-5) */}
         <motion.div variants={itemVariants} className="lg:col-span-5 flex flex-col gap-5">
-          <Panel className="flex flex-col gap-4">
+          <Panel className="flex flex-col gap-4 relative">
+            {isAnalyzing && (
+              <div className="absolute inset-0 z-10 bg-void/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl border border-white/10">
+                <div className="w-8 h-8 border-2 border-accent-cyan/30 border-t-accent-cyan rounded-full animate-spin mb-3"></div>
+                <p className="font-mono text-accent-cyan text-sm animate-pulse tracking-widest">PROCESSING AI...</p>
+              </div>
+            )}
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <h2 className="font-mono text-text-muted text-xs uppercase tracking-widest flex items-center gap-2">
                 <Mic size={14} className="text-accent-cyan" /> Voice Telemetry
