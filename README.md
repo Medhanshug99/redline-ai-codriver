@@ -8,6 +8,8 @@
 [![Dataset](https://img.shields.io/badge/Dataset-MikCil%2Ff1--team--radio-blue)](https://huggingface.co/datasets/MikCil/f1-team-radio)
 [![License: CC BY 4.0](https://img.shields.io/badge/Data%20License-CC%20BY%204.0-green)](https://creativecommons.org/licenses/by/4.0/)
 
+> **See also:** [HUGGINGFACE_RESOURCES.md](./HUGGINGFACE_RESOURCES.md) — full disclosure of all HF models, datasets, integration pattern, and known limitations.
+
 > **Every engine has one. So does every driver.**
 
 REDLINE is a real-time AI co-driver intelligence system built for the **Grand Prix Hackathon (Track: PS1 — The Silent Co-Driver)**. It listens to driver radio transmissions, transcribes them, detects vocal stress/mood patterns, and cross-references them against lap-time data — surfacing a live timeline the pit wall can act on.
@@ -106,7 +108,7 @@ The SER model (`wav2vec2-base-superb-er`) outputs 4 raw classes. They are mapped
 > 
 > 3. **Whisper transcription accuracy degrades on heavy radio static.** In testing, 2 of 5 clips produced phonetically plausible but semantically incorrect transcripts due to noise in the audio channel. Clips recorded closer to the microphone (longer, cleaner utterances like strategy discussions) transcribed accurately. Clip accuracy is noted in demo materials; `whisper-base` was chosen for demo speed — `whisper-small` or `whisper-medium` would improve results at higher latency cost.
 > 
-> 4. **Stress–lap correlation requires session-scale data.** With 5 clips, Pearson r is directional but not statistically meaningful (measured at −0.19 in testing). The correlation feature demonstrates the *architecture* of the insight pipeline — it strengthens meaningfully with a full session's worth of radio clips (typically 40–80 transmissions per race stint).
+> 4. **Stress–lap correlation requires session-scale data.** With 5 clips, Pearson r is directional but not statistically meaningful (measured at **+0.6736** on the final 5-clip demo set — driven by the single Tired clip having the slowest lap; this would converge with a full session's 40–80 clips). The correlation feature demonstrates the *architecture* of the insight pipeline — it strengthens meaningfully with a full session's worth of radio clips (typically 40–80 transmissions per race stint).
 > 
 > Outputs reflect detected vocal tone patterns and are not diagnostic claims about any real driver's mental state.
 

@@ -29,7 +29,8 @@ export function StressHeatmap({ entries }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
+      {/* Color strip */}
       <div className="flex h-10 rounded-lg overflow-hidden gap-0.5">
         {entries.map((entry, i) => (
           <motion.div
@@ -51,9 +52,25 @@ export function StressHeatmap({ entries }: Props) {
           </motion.div>
         ))}
       </div>
-      <div className="flex justify-between text-xs font-mono text-text-muted">
-        <span>← Earlier</span>
-        <span>Latest →</span>
+
+      {/* Tick labels row */}
+      <div className="flex relative h-4">
+        {entries.map((_entry, i) => {
+          // Show label for first, last, and every 2nd entry to avoid crowding
+          const show = i === 0 || i === entries.length - 1 || i % 2 === 0;
+          return (
+            <div key={i} className="flex-1 relative">
+              {show && (
+                <>
+                  <div className="absolute top-0 left-1/2 -translate-x-px w-px h-1.5 bg-white/20" />
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[9px] font-mono text-text-muted/60 whitespace-nowrap">
+                    L-{entries.length - 1 - i === 0 ? "NOW" : entries.length - 1 - i}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

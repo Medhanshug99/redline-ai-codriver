@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { Upload, Play, Pause, Loader2 } from "lucide-react";
 import { GlowButton } from "./ui/GlowButton";
 

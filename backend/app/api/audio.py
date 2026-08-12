@@ -59,10 +59,10 @@ async def upload_audio(file: UploadFile = File(...)):
             os.remove(temp_file_path)
 
 @router.post("/demo")
-async def demo_audio():
+async def demo_audio(clip_id: str = "05"):
     global _upload_count
     
-    demo_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'sample_audio', 'clip_05.wav')
+    demo_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'sample_audio', f'clip_{clip_id}.wav')
     
     if not os.path.exists(demo_file_path):
         return {"error": "Demo file not found"}

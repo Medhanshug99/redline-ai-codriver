@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { Minus, AlertTriangle, BatteryMedium, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { type LucideIcon, Minus, AlertTriangle, BatteryMedium, AlertCircle } from "lucide-react";
 
 type MoodType = "Calm" | "Stressed" | "Tired" | "Frustrated";
 
@@ -14,7 +14,7 @@ const moodConfig: Record<
     color: string;
     bg: string;
     border: string;
-    icon: string;
+    Icon: LucideIcon;
     description: string;
   }
 > = {
@@ -22,28 +22,28 @@ const moodConfig: Record<
     color: "var(--stress-calm)",
     bg: "rgba(43,232,255,0.08)",
     border: "rgba(43,232,255,0.3)",
-    icon: Minus,
+    Icon: Minus,
     description: "Vocal tone is steady. Driver is composed.",
   },
   Stressed: {
     color: "var(--stress-stressed)",
     bg: "rgba(255,43,60,0.08)",
     border: "rgba(255,43,60,0.3)",
-    icon: AlertTriangle,
+    Icon: AlertTriangle,
     description: "Elevated vocal stress detected. Monitor closely.",
   },
   Tired: {
     color: "var(--stress-tired)",
     bg: "rgba(255,176,32,0.08)",
     border: "rgba(255,176,32,0.3)",
-    icon: BatteryMedium,
+    Icon: BatteryMedium,
     description: "Vocal pattern suggests fatigue. Consider pacing.",
   },
   Frustrated: {
     color: "var(--accent-red)",
     bg: "rgba(255,43,60,0.12)",
     border: "rgba(255,43,60,0.5)",
-    icon: AlertCircle,
+    Icon: AlertCircle,
     description:
       "Mixed vocal stress signals. Composite frustration indicator active.",
   },
@@ -61,37 +61,41 @@ export function MoodBadge({ mood, confidence }: Props) {
   const cfg = moodConfig[mood];
 
   return (
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="p-4 rounded-xl border"
-      style={{ backgroundColor: cfg.bg, borderColor: cfg.border }}
-    >
-      <div className="flex items-center gap-3 mb-2">
-        <motion.span
-          className="flex items-center justify-center"
-          style={{ color: cfg.color }}
-          animate={mood === "Stressed" ? { scale: [1, 1.2, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 1.2 }}
-        >
-          <cfg.icon size={28} />
-        </motion.span>
-        <div>
-          <p
-            className="text-2xl font-bold tracking-tight"
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={mood}
+        initial={{ scale: 0.9, opacity: 0, boxShadow: `0 0 24px ${cfg.color}` }}
+        animate={{ scale: 1, opacity: 1, boxShadow: `0 0 0px ${cfg.color}` }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 280, damping: 22, boxShadow: { duration: 0.35 } }}
+        className="p-4 rounded-xl border"
+        style={{ backgroundColor: cfg.bg, borderColor: cfg.border }}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <motion.span
+            className="flex items-center justify-center"
             style={{ color: cfg.color }}
+            animate={mood === "Stressed" ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ repeat: Infinity, duration: 1.2 }}
           >
-            {mood}
-          </p>
-          <p className="text-xs font-mono text-text-muted">
-            {(confidence * 100).toFixed(1)}% confidence
-          </p>
+            <cfg.Icon size={28} />
+          </motion.span>
+          <div>
+            <p
+              className="text-2xl font-bold tracking-tight"
+              style={{ color: cfg.color }}
+            >
+              {mood}
+            </p>
+            <p className="text-xs font-mono text-text-muted">
+              {(confidence * 100).toFixed(1)}% confidence
+            </p>
+          </div>
         </div>
-      </div>
-      <p className="text-xs text-text-muted leading-relaxed">
-        {cfg.description}
-      </p>
-    </motion.div>
+        <p className="text-xs text-text-muted leading-relaxed">
+          {cfg.description}
+        </p>
+      </motion.div>
+    </AnimatePresence>
   );
 }

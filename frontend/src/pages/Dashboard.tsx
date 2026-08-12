@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { Panel } from "../components/ui/Panel";
 import { Badge } from "../components/ui/Badge";
 import { WaveformPlayer } from "../components/WaveformPlayer";
@@ -9,6 +9,7 @@ import { MoodBadge } from "../components/MoodBadge";
 import { StressHeatmap } from "../components/StressHeatmap";
 import { CorrelationCard } from "../components/CorrelationCard";
 import { RadioLog } from "../components/RadioLog";
+import { TrackBackdrop } from "../scenes/TrackBackdrop";
 import {
   Mic,
   Activity,
@@ -55,9 +56,29 @@ export function Dashboard() {
   const [log, setLog] = useState<LogEntry[]>([]);
   const [heatmap, setHeatmap] = useState<HeatmapEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [analysisKey, setAnalysisKey] = useState(0);
+
+  // Parallax tilt — one global listener, throttled to rAF
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [3, -3]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-3, 3]);
+  const rafId = useRef<number | null>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (rafId.current) return; // throttle to rAF
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = null;
+      const el = e.currentTarget;
+      const rect = el.getBoundingClientRect();
+      mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+      mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+    });
+  }, [mouseX, mouseY]);
 
   const processAnalysisResult = (result: AnalysisResponse) => {
     setAnalysis(result);
+    setAnalysisKey((k) => k + 1);
     const entry: LogEntry = {
       id: uuidv4(),
       transcript: result.transcript,
@@ -91,15 +112,15 @@ export function Dashboard() {
     }
   };
 
-  const handleDemoClick = async () => {
+  const handleDemoClick = async (clipId: string = '05') => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const result = await runDemo();
+      const result = await runDemo(clipId);
       processAnalysisResult(result);
     } catch (err) {
-      console.error('Failed to run demo:', err);
-      setError('Demo failed. Backend might be down or clip_05.wav is missing.');
+      console.error(`Failed to run demo for clip ${clipId}:`, err);
+      setError(`Demo failed. Backend might be down or clip_${clipId}.wav is missing.`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -126,7 +147,13 @@ export function Dashboard() {
     : [];
 
   return (
-    <div className="min-h-screen p-6 pt-8 max-w-[1440px] mx-auto">
+    <>
+      <TrackBackdrop mood={(analysis?.mood as "Calm" | "Stressed" | "Tired" | "Frustrated") ?? null} />
+      <motion.div
+        className="min-h-screen p-6 pt-8 max-w-[1440px] mx-auto"
+        onMouseMove={handleMouseMove}
+        style={{ perspective: 1200 }}
+      >
       {/* Header */}
       <header className="mb-8 flex items-center justify-between">
         <div>
@@ -190,8 +217,23 @@ export function Dashboard() {
         <motion.div
           variants={itemVariants}
           className="lg:col-span-5 flex flex-col gap-5"
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         >
-          <Panel className="flex flex-col gap-4 relative">
+          <Panel className="flex flex-col gap-4 relative overflow-hidden">
+            {/* Sweep accent line — animates in when new data arrives */}
+            <AnimatePresence>
+              {analysisKey > 0 && (
+                <motion.div
+                  key={analysisKey}
+                  className="absolute top-0 left-0 right-0 h-[2px] z-20"
+                  style={{ background: "var(--accent-red)", boxShadow: "0 0 8px var(--accent-red)" }}
+                  initial={{ scaleX: 0, originX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              )}
+            </AnimatePresence>
             {isAnalyzing && (
               <div className="absolute inset-0 z-10 bg-void/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl border border-white/10">
                 <div className="w-8 h-8 border-2 border-accent-cyan/30 border-t-accent-cyan rounded-full animate-spin mb-3"></div>
@@ -216,16 +258,42 @@ export function Dashboard() {
                 pulse={isAnalyzing || analysis?.mood === 'Stressed'}
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
               <WaveformPlayer onFileSelect={handleFileSelect} isAnalyzing={isAnalyzing} />
               {!isAnalyzing && (
-                <button 
-                  onClick={handleDemoClick}
-                  className="flex items-center gap-2 h-10 px-4 rounded-lg bg-void border border-white/10 hover:border-accent-cyan text-accent-cyan transition-colors text-sm whitespace-nowrap"
-                >
-                  <PlayCircle size={16} />
-                  Run Demo
-                </button>
+                <div className="flex gap-2 items-center flex-wrap">
+                  <span className="text-xs font-mono text-text-muted mr-2">Demo Clips:</span>
+                  <button 
+                    onClick={() => handleDemoClick('05')}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded bg-void border border-white/10 hover:border-accent-cyan text-text-muted hover:text-accent-cyan transition-colors text-xs font-mono"
+                  >
+                    <PlayCircle size={14} /> Clip 05 (Ricciardo)
+                  </button>
+                  <button 
+                    onClick={() => handleDemoClick('demo_hamilton_2018_calm')}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded bg-void border border-white/10 hover:border-accent-cyan text-text-muted hover:text-accent-cyan transition-colors text-xs font-mono"
+                  >
+                    <PlayCircle size={14} /> HAM '18
+                  </button>
+                  <button 
+                    onClick={() => handleDemoClick('demo_hamilton_2019_calm')}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded bg-void border border-white/10 hover:border-accent-cyan text-text-muted hover:text-accent-cyan transition-colors text-xs font-mono"
+                  >
+                    <PlayCircle size={14} /> HAM '19
+                  </button>
+                  <button 
+                    onClick={() => handleDemoClick('demo_verstappen_2019_calm')}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded bg-void border border-white/10 hover:border-accent-cyan text-text-muted hover:text-accent-cyan transition-colors text-xs font-mono"
+                  >
+                    <PlayCircle size={14} /> VER '19
+                  </button>
+                  <button 
+                    onClick={() => handleDemoClick('demo_hamilton_2018_defending')}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded bg-void border border-white/10 hover:border-accent-cyan text-text-muted hover:text-accent-cyan transition-colors text-xs font-mono"
+                  >
+                    <PlayCircle size={14} /> HAM Defend
+                  </button>
+                </div>
               )}
             </div>
             <TranscriptPanel text={analysis?.transcript ?? ""} />
@@ -337,9 +405,13 @@ export function Dashboard() {
               Outputs reflect detected vocal tone patterns — not diagnostic
               claims about any individual driver's mental state.
             </p>
+            <p className="text-xs text-text-muted/30 font-mono mt-2 leading-relaxed">
+              Built on pretrained Hugging Face models (Whisper + wav2vec2 SER) — no fine-tuning or custom training.
+            </p>
           </Panel>
         </motion.div>
       </motion.div>
-    </div>
+      </motion.div>
+    </>
   );
 }

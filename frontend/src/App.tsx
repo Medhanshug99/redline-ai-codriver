@@ -1,13 +1,7 @@
-import { TrackBackdrop } from "./scenes/TrackBackdrop";
 import { Dashboard } from "./pages/Dashboard";
 
 function App() {
-  return (
-    <>
-      <TrackBackdrop />
-      <Dashboard />
-    </>
-  );
+  return <Dashboard />;
 }
 
 export default App;

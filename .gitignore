@@ -23,3 +23,9 @@ frontend/*.local
 # OS
 .DS_Store
 Thumbs.db
+
+# Dev scratch & one-off scripts
+scratch/
+find_emojis.py
+emojis_found.txt
+dataset.parquet

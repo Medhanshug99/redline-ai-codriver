@@ -1,7 +1,7 @@
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   YAxis,
   Tooltip,
   CartesianGrid,
@@ -31,7 +31,13 @@ export function LapTimeChart({ data }: Props) {
   return (
     <div className="h-44 w-full mt-2">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} margin={{ left: 4, right: 4 }}>
+        <AreaChart data={chartData} margin={{ left: 4, right: 4 }}>
+          <defs>
+            <linearGradient id="lapGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="var(--accent-cyan)" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="var(--accent-cyan)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="rgba(255,255,255,0.05)"
@@ -57,15 +63,19 @@ export function LapTimeChart({ data }: Props) {
             }}
             labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="time"
-            stroke="var(--stress-calm)"
+            stroke="var(--accent-cyan)"
             strokeWidth={2.5}
-            dot={{ r: 4, fill: "var(--stress-calm)", strokeWidth: 0 }}
+            fill="url(#lapGradient)"
+            dot={{ r: 4, fill: "var(--accent-cyan)", strokeWidth: 0 }}
             activeDot={{ r: 6, fill: "var(--text-primary)" }}
+            isAnimationActive={true}
+            animationDuration={800}
+            animationEasing="ease-out"
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

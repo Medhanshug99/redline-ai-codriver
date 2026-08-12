@@ -29,8 +29,8 @@ export async function uploadAudio(file: File): Promise<AnalysisResponse> {
   return response.json();
 }
 
-export async function runDemo(): Promise<AnalysisResponse> {
-  const response = await fetch(`${API_BASE}/demo`, {
+export async function runDemo(clipId: string = '05'): Promise<AnalysisResponse> {
+  const response = await fetch(`${API_BASE}/demo?clip_id=${clipId}`, {
     method: "POST",
   });
 
