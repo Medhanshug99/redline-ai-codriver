@@ -1,108 +1,51 @@
-import { useRef, useState } from "react";
-import { Upload, Play, Pause, Loader2 } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Upload, Loader2, Play, Pause } from "lucide-react";
 import { GlowButton } from "./ui/GlowButton";
 
 interface Props {
   onFileSelect: (file: File) => void;
   isAnalyzing: boolean;
+  /** Passed externally when a demo clip is selected – takes priority over the upload object URL */
+  audioSrc?: string | null;
 }
 
-export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
+export function WaveformPlayer({ onFileSelect, isAnalyzing, audioSrc }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [localAudioUrl, setLocalAudioUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const animFrameRef = useRef<number | null>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
-      const url = URL.createObjectURL(file);
-      setAudioUrl(url);
-      setIsPlaying(false);
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      sourceRef.current = null;
-      onFileSelect(file);
-    }
-  };
+  // Whichever src is active: external (demo) wins over local (upload)
+  const activeSrc = audioSrc ?? localAudioUrl;
 
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);
     } else {
       audioRef.current.play();
-      setupWebAudio();
-      setIsPlaying(true);
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  // Revoke old object URL when a new file is chosen
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
+      const url = URL.createObjectURL(file);
+      setLocalAudioUrl(url);
+      setIsPlaying(false);
+      onFileSelect(file);
     }
   };
 
-  const setupWebAudio = () => {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioContext();
-    }
-    if (audioCtxRef.current.state === "suspended") {
-      audioCtxRef.current.resume();
-    }
-    if (!sourceRef.current && audioRef.current) {
-      sourceRef.current = audioCtxRef.current.createMediaElementSource(
-        audioRef.current,
-      );
-      analyserRef.current = audioCtxRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      sourceRef.current.connect(analyserRef.current);
-      analyserRef.current.connect(audioCtxRef.current.destination);
-      drawWaveform();
-    }
-  };
-
-  const drawWaveform = () => {
-    if (!canvasRef.current || !analyserRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const bufferLength = analyserRef.current.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const draw = () => {
-      animFrameRef.current = requestAnimationFrame(draw);
-      if (!analyserRef.current) return;
-      analyserRef.current.getByteTimeDomainData(dataArray);
-
-      ctx.fillStyle = "rgba(5, 7, 12, 0.3)";
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#2be8ff";
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = "#2be8ff";
-      ctx.beginPath();
-
-      const sliceWidth = width / bufferLength;
-      let x = 0;
-      for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = (v * height) / 2;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-        x += sliceWidth;
-      }
-      ctx.lineTo(width, height / 2);
-      ctx.stroke();
+  // Revoke local URL on unmount
+  useEffect(() => {
+    return () => {
+      if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
     };
-
-    draw();
-  };
+  }, [localAudioUrl]);
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -123,19 +66,6 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
           {isAnalyzing ? "Analyzing..." : "Upload Radio Clip"}
         </GlowButton>
 
-        {audioUrl && (
-          <button
-            onClick={togglePlay}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-void border border-white/10 hover:border-accent-cyan text-accent-cyan transition-colors"
-          >
-            {isPlaying ? (
-              <Pause size={16} />
-            ) : (
-              <Play size={16} className="ml-0.5" />
-            )}
-          </button>
-        )}
-
         {isAnalyzing && (
           <span className="text-xs font-mono text-accent-cyan animate-pulse flex items-center gap-1">
             <Loader2 size={12} className="animate-spin" /> Transcribing +
@@ -144,26 +74,35 @@ export function WaveformPlayer({ onFileSelect, isAnalyzing }: Props) {
         )}
       </div>
 
-      {audioUrl && (
-        <div className="w-full h-20 bg-void/50 rounded-xl border border-white/5 overflow-hidden relative">
-          <canvas
-            ref={canvasRef}
-            width={800}
-            height={80}
-            className="w-full h-full"
-          />
+      {activeSrc ? (
+        <div className="w-full flex flex-col gap-2">
+          {activeSrc && !audioSrc && (
+            <button
+              onClick={togglePlay}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-void border border-white/10 hover:border-accent-cyan text-accent-cyan transition-colors"
+            >
+              {isPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
+            </button>
+          )}
           <audio
             ref={audioRef}
-            src={audioUrl}
+            key={activeSrc}
+            controls
+            src={activeSrc}
+            className="w-full h-10 rounded-lg"
             onEnded={() => setIsPlaying(false)}
-            crossOrigin="anonymous"
+            style={{
+              filter: "invert(1) hue-rotate(180deg) brightness(0.85)",
+              accentColor: "var(--accent-cyan)",
+            }}
           />
+          <p className="text-[10px] font-mono text-text-muted/40 text-right">
+            {audioSrc ? "demo clip" : "uploaded file"}
+          </p>
         </div>
-      )}
-
-      {!audioUrl && (
-        <div className="w-full h-20 rounded-xl border border-dashed border-white/10 flex items-center justify-center text-xs text-text-muted/50 font-mono">
-          No clip loaded — upload a .mp3, .wav, or .ogg file
+      ) : (
+        <div className="w-full h-14 rounded-xl border border-dashed border-white/10 flex items-center justify-center text-xs text-text-muted/50 font-mono">
+          No clip loaded — upload a .mp3 / .wav / .ogg or select a demo clip
         </div>
       )}
     </div>

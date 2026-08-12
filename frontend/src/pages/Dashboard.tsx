@@ -57,6 +57,7 @@ export function Dashboard() {
   const [heatmap, setHeatmap] = useState<HeatmapEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [analysisKey, setAnalysisKey] = useState(0);
+  const [demoAudioUrl, setDemoAudioUrl] = useState<string | null>(null);
 
   // Parallax tilt — one global listener, throttled to rAF
   const mouseX = useMotionValue(0);
@@ -67,12 +68,16 @@ export function Dashboard() {
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (rafId.current) return; // throttle to rAF
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    const el = e.currentTarget;
+    
     rafId.current = requestAnimationFrame(() => {
       rafId.current = null;
-      const el = e.currentTarget;
+      if (!el) return;
       const rect = el.getBoundingClientRect();
-      mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
-      mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+      mouseX.set((clientX - rect.left) / rect.width - 0.5);
+      mouseY.set((clientY - rect.top) / rect.height - 0.5);
     });
   }, [mouseX, mouseY]);
 
@@ -101,6 +106,7 @@ export function Dashboard() {
   const handleFileSelect = async (file: File) => {
     setIsAnalyzing(true);
     setError(null);
+    setDemoAudioUrl(null); // Clear demo audio if a file is uploaded
     try {
       const result = await uploadAudio(file);
       processAnalysisResult(result);
@@ -115,6 +121,7 @@ export function Dashboard() {
   const handleDemoClick = async (clipId: string = '05') => {
     setIsAnalyzing(true);
     setError(null);
+    setDemoAudioUrl(`http://localhost:8000/api/audio/sample/${clipId}`);
     try {
       const result = await runDemo(clipId);
       processAnalysisResult(result);
@@ -259,7 +266,7 @@ export function Dashboard() {
               />
             </div>
             <div className="flex flex-col gap-3">
-              <WaveformPlayer onFileSelect={handleFileSelect} isAnalyzing={isAnalyzing} />
+              <WaveformPlayer onFileSelect={handleFileSelect} isAnalyzing={isAnalyzing} audioSrc={demoAudioUrl} />
               {!isAnalyzing && (
                 <div className="flex gap-2 items-center flex-wrap">
                   <span className="text-xs font-mono text-text-muted mr-2">Demo Clips:</span>

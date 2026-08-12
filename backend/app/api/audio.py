@@ -2,11 +2,24 @@ import os
 import uuid
 import json
 import time
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi.responses import FileResponse
 from app.models.transcriber import transcribe_audio
 from app.models.emotion import analyze_emotion
 
 router = APIRouter()
+
+SAMPLE_AUDIO_DIR = os.path.join(os.path.dirname(__file__), '..', 'data', 'sample_audio')
+
+@router.get("/sample/{clip_id}")
+async def serve_sample_audio(clip_id: str):
+    """Serve a raw WAV file from sample_audio so the browser can play it."""
+    # Sanitize: no path traversal
+    safe_id = os.path.basename(clip_id)
+    file_path = os.path.join(SAMPLE_AUDIO_DIR, f'clip_{safe_id}.wav')
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"Sample clip '{safe_id}' not found")
+    return FileResponse(file_path, media_type="audio/wav", filename=f"clip_{safe_id}.wav")
 
 # Load mock lap times
 LAPS_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'sample_laps.json')
