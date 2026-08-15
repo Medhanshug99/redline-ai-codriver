@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Flag } from "lucide-react";
+import { Flag, Wrench } from "lucide-react";
 
 const SAFETY_KEYWORDS = [
   "brake",
@@ -22,6 +22,7 @@ const SAFETY_KEYWORDS = [
 ];
 
 function highlightKeywords(text: string): ReactNode[] {
+  if (!text) return [];
   const words = text.split(/(\s+)/);
   return words.map((word, i) => {
     const clean = word.replace(/[^a-zA-Z]/g, "").toLowerCase();
@@ -36,15 +37,16 @@ function highlightKeywords(text: string): ReactNode[] {
         </mark>
       );
     }
-    return <span key={i}>{word}</span>;
+    return word;
   });
 }
 
 interface Props {
   text: string;
+  recommendedAction?: string | null;
 }
 
-export function TranscriptPanel({ text }: Props) {
+export function TranscriptPanel({ text, recommendedAction }: Props) {
   return (
     <div className="mt-2 p-4 bg-void/30 rounded-lg border border-white/5 min-h-[90px] flex flex-col justify-center gap-2">
       {text ? (
@@ -52,10 +54,18 @@ export function TranscriptPanel({ text }: Props) {
           <p className="text-base text-text-primary font-medium leading-relaxed">
             "{highlightKeywords(text)}"
           </p>
-          <p className="text-xs text-text-muted font-mono mt-1 flex items-center gap-1">
-            <Flag size={12} className="text-text-muted" /> Safety keywords
-            highlighted in red
-          </p>
+          <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
+            <p className="text-xs text-text-muted font-mono flex items-center gap-1">
+              <Flag size={12} className="text-text-muted" /> Safety keywords
+              highlighted in red
+            </p>
+            {recommendedAction && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-300 font-mono text-xs font-semibold shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                <Wrench size={13} className="text-amber-400" />
+                ACTION: {recommendedAction}
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <p className="text-text-muted/50 font-mono text-sm italic">

@@ -1,14 +1,16 @@
 import {
   ResponsiveContainer,
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
+  XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
+  Cell,
 } from "recharts";
 
 interface Props {
-  data: { lap_time: number; sector1: number } | null;
+  data: { lap: number; lap_time: number; sector1: number; sector2?: number; sector3?: number } | null;
 }
 
 export function LapTimeChart({ data }: Props) {
@@ -20,28 +22,46 @@ export function LapTimeChart({ data }: Props) {
     );
   }
 
+  /**
+   * Sector breakdown chart.
+   *
+   * Each bar represents one sector split from the lap_data returned by
+   * the backend. sector2 and sector3 fall back to an even 1/3 split of
+   * the remaining time when not provided (because the mock dataset only
+   * guarantees sector1). This is deliberate and disclosed — the telemetry
+   * data is sourced from sample_laps.json (mock, not live timing).
+   */
+  const s1 = data.sector1;
+  const remaining = data.lap_time - s1;
+  const s2 = data.sector2 ?? remaining / 2;
+  const s3 = data.sector3 ?? remaining - s2;
+
   const chartData = [
-    { lap: "L-4", time: data.lap_time + 1.2 },
-    { lap: "L-3", time: data.lap_time + 0.5 },
-    { lap: "L-2", time: data.lap_time + 0.2 },
-    { lap: "L-1", time: data.lap_time - 0.1 },
-    { lap: "NOW", time: data.lap_time },
+    { sector: "S1", time: parseFloat(s1.toFixed(3)) },
+    { sector: "S2", time: parseFloat(s2.toFixed(3)) },
+    { sector: "S3", time: parseFloat(s3.toFixed(3)) },
+  ];
+
+  const sectorColors = [
+    "var(--stress-calm)",
+    "var(--stress-tired)",
+    "var(--accent-red)",
   ];
 
   return (
     <div className="h-44 w-full mt-2">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ left: 4, right: 4 }}>
-          <defs>
-            <linearGradient id="lapGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--accent-cyan)" stopOpacity={0.25} />
-              <stop offset="95%" stopColor="var(--accent-cyan)" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+        <BarChart data={chartData} margin={{ left: 4, right: 4 }}>
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="rgba(255,255,255,0.05)"
             vertical={false}
+          />
+          <XAxis
+            dataKey="sector"
+            stroke="rgba(255,255,255,0.2)"
+            fontSize={10}
+            tickLine={false}
           />
           <YAxis
             domain={["auto", "auto"]}
@@ -62,20 +82,20 @@ export function LapTimeChart({ data }: Props) {
               fontSize: 12,
             }}
             labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
+            formatter={(val: unknown) => [`${Number(val).toFixed(3)}s`, "Time"]}
           />
-          <Area
-            type="monotone"
+          <Bar
             dataKey="time"
-            stroke="var(--accent-cyan)"
-            strokeWidth={2.5}
-            fill="url(#lapGradient)"
-            dot={{ r: 4, fill: "var(--accent-cyan)", strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: "var(--text-primary)" }}
+            radius={[4, 4, 0, 0]}
             isAnimationActive={true}
             animationDuration={800}
             animationEasing="ease-out"
-          />
-        </AreaChart>
+          >
+            {chartData.map((_entry, index) => (
+              <Cell key={`cell-${index}`} fill={sectorColors[index]} fillOpacity={0.8} />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
