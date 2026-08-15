@@ -31,7 +31,7 @@ export function RadioLog({ entries }: Props) {
       }}
     >
       <AnimatePresence>
-        {[...entries].reverse().map((entry) => (
+        {entries.map((entry) => (
           <motion.div
             key={entry.id}
             initial={{ opacity: 0, x: -16 }}

@@ -1,4 +1,5 @@
 import os
+import soundfile as sf
 from transformers import pipeline
 
 _emotion_pipeline = None
@@ -42,5 +43,9 @@ def map_emotion(raw_scores):
 
 def analyze_emotion(file_path: str):
     pipe = get_emotion_pipeline()
-    result = pipe(file_path, top_k=4)
+    # Read audio array using soundfile directly to eliminate ffmpeg subprocess dependency
+    audio_array, sampling_rate = sf.read(file_path)
+    audio_array = audio_array.astype("float32")
+    
+    result = pipe({"raw": audio_array, "sampling_rate": sampling_rate}, top_k=4)
     return map_emotion(result)
